@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p src/assets)",
+      "Bash(mv zavod.jpg zavod1.jpg zavod2.jpg 108048546_114775713632869_311995061532677271_n.jpg 110268933_119220626521711_4581066799584685885_n.jpg 598842230_1383649950078766_4672550545673476619_n.jpg src/assets/)",
+      "Bash(mv 108048546_114775713632869_311995061532677271_n.jpg gas-cabinet.jpg)",
+      "Bash(mv 110268933_119220626521711_4581066799584685885_n.jpg robot-arm.jpg)",
+      "Bash(mv 598842230_1383649950078766_4672550545673476619_n.jpg usc-logo.jpg)",
+      "Bash(npm install *)",
+      "Bash(grep -oE \"export declare \\(const|function\\) [A-Za-z]+|export \\\\{ [A-Za-z, ]+\\\\} from './\\(core|renderer|scene|context\\)\" node_modules/shaders/dist/react/index.d.ts)",
+      "Bash(grep -iE '^\\(Shaders|Canvas|Scene|Root|Render|Stage|ShaderMount|Group\\)$')",
+      "Bash(gh auth *)"
+    ]
+  }
+}

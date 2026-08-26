@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Local build cache
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+
+# Env / secrets
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*

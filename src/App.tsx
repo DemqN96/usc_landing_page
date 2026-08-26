@@ -1,0 +1,837 @@
+import { useState, useEffect, Component, type ReactNode } from 'react'
+import { Shader, Swirl, ChromaFlow, FlutedGlass, FilmGrain } from 'shaders/react'
+import {
+  Clock,
+  ArrowRight,
+  Menu,
+  X,
+  Link as LinkIcon,
+  Facebook,
+  Upload,
+  FileText,
+  CheckCircle2,
+  ShieldCheck,
+  Award,
+  Phone,
+  Mail,
+  MapPin,
+  Gauge,
+} from 'lucide-react'
+
+const FACEBOOK_URL = 'https://www.facebook.com/' // TODO: replace with the real USC page URL
+
+import zavodBalls from './assets/zavod1.jpg'
+import zavodProte from './assets/zavod.jpg'
+import gasCabinet from './assets/gas-cabinet.jpg'
+import uscLogo from './assets/usc-logo.jpg'
+import sampleBranded from './assets/sample-valve-branded.jpg'
+import sampleWelded from './assets/sample-valves-welded.jpg'
+import sampleHandles from './assets/sample-valves-handles.jpg'
+
+/* ------------------------------------------------------------------ */
+/* Small helpers                                                       */
+/* ------------------------------------------------------------------ */
+
+function useKyivTime() {
+  const [time, setTime] = useState(() => formatKyiv())
+  useEffect(() => {
+    const id = setInterval(() => setTime(formatKyiv()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  return time
+}
+
+function formatKyiv() {
+  return new Intl.DateTimeFormat('uk-UA', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/Kyiv',
+  }).format(new Date())
+}
+
+/* A rolling text label used on CTA buttons */
+function TextRoll({ children }: { children: string }) {
+  return (
+    <span className="text-roll">
+      <span>{children}</span>
+      <span aria-hidden="true">{children}</span>
+    </span>
+  )
+}
+
+/* On-brand valve / flame mark (replaces the original starburst-compass) */
+function ValveMark({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M13.5 2c.4 1.9-.3 3.2-1.3 4.4-1 1.2-2.2 2.4-2.2 4.3a3.9 3.9 0 0 0 7.8.2c0-1-.3-1.8-.7-2.6.9.5 1.6 1.5 1.9 2.8.7 3-1.2 6.1-4.3 6.9-3.1.8-6.3-1-7.1-4-.6-2.3.2-4.3 1.5-5.9C13.8 6 14.2 4 13.5 2Z" />
+    </svg>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Shader background                                                   */
+/* ------------------------------------------------------------------ */
+
+class ShaderBoundary extends Component<{ children: ReactNode }, { err: boolean }> {
+  state = { err: false }
+  static getDerivedStateFromError() {
+    return { err: true }
+  }
+  render() {
+    return this.state.err ? null : this.props.children
+  }
+}
+
+function HeroShaders() {
+  return (
+    <div className="absolute inset-0 z-10 pointer-events-none">
+      <Shader className="h-full w-full">
+        <Swirl colorA="#ffffff" colorB="#f0f0f0" detail={1.7}>
+          <ChromaFlow
+            baseColor="#ffffff"
+            downColor="#1E7FC2"
+            leftColor="#1E7FC2"
+            rightColor="#1E7FC2"
+            upColor="#1E7FC2"
+            momentum={13}
+            radius={3.5}
+          >
+            <FlutedGlass
+              aberration={0.61}
+              angle={31}
+              frequency={8}
+              highlight={0.12}
+              highlightSoftness={0}
+              lightAngle={-90}
+              refraction={4}
+              shape="rounded"
+              softness={1}
+              speed={0.15}
+            >
+              <FilmGrain strength={0.05} />
+            </FlutedGlass>
+          </ChromaFlow>
+        </Swirl>
+      </Shader>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Navigation                                                          */
+/* ------------------------------------------------------------------ */
+
+const NAV_LINKS = [
+  { label: 'Головна', href: '#top' },
+  { label: 'Каталог', href: '#catalog' },
+  { label: 'Партнерам та дилерам', href: '#dealers' },
+  { label: 'Сертифікати та контакти', href: '#contacts' },
+]
+
+const SIZE_RANGES = [
+  {
+    range: '15–50',
+    title: 'Крани фланцеві та муфтові',
+    desc: 'Малі діаметри для опалення, газу та водопостачання. Ручне керування.',
+    pressure: 'PN16 – PN40',
+    img: sampleBranded,
+  },
+  {
+    range: '65–250',
+    title: 'Крани фланцеві та під приварку',
+    desc: 'Середні діаметри для теплопунктів і промислових мереж, у т.ч. з приводом.',
+    pressure: 'PN16 – PN25',
+    img: sampleHandles,
+  },
+  {
+    range: '300–700',
+    title: 'Крани великих діаметрів',
+    desc: 'Магістральні застосування, зварна конструкція, редукторний / електропривод.',
+    pressure: 'PN16 – PN25',
+    img: sampleWelded,
+  },
+]
+
+function Nav({ onOpenMenu }: { onOpenMenu: () => void }) {
+  const time = useKyivTime()
+  return (
+    <div className="relative z-20 mx-auto w-full max-w-[1440px] px-3 pt-3 sm:px-6 sm:pt-6">
+      <nav className="flex items-center justify-between rounded-full bg-white p-2 shadow-[0_2px_12px_rgba(0,0,0,0.06)] sm:p-3">
+        {/* Left: logo + links */}
+        <div className="flex items-center gap-6">
+          <img
+            src={uscLogo}
+            alt="USC — Ukrainian Santechnical Company"
+            className="h-9 w-9 rounded-full object-cover sm:h-10 sm:w-10"
+          />
+          <ul className="hidden items-center gap-6 lg:flex">
+            {NAV_LINKS.map((l) => (
+              <li key={l.label}>
+                <a
+                  href={l.href}
+                  className="whitespace-nowrap text-[14px] text-gray-900 transition-colors hover:text-[#1E7FC2]"
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Right (desktop) */}
+        <div className="hidden items-center gap-5 lg:flex">
+          <span className="hidden text-[13px] text-gray-600 lg:inline">
+            Лише краще обладнання
+          </span>
+          <span className="flex items-center gap-1.5 text-[13px] text-gray-600">
+            <Clock size={14} />
+            {time} Київ
+          </span>
+          <a
+            href={FACEBOOK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-[#1E7FC2]"
+          >
+            <Facebook size={18} />
+          </a>
+          <a
+            href="#"
+            className="group flex items-center gap-3 rounded-full bg-[#4A4D52] py-2 pl-5 pr-2 text-[13px] font-medium text-white"
+          >
+            <TextRoll>Замовити дзвінок</TextRoll>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white transition-transform duration-500 group-hover:-rotate-45">
+              <ArrowRight size={14} className="text-[#4A4D52]" />
+            </span>
+          </a>
+        </div>
+
+        {/* Mobile toggle */}
+        <button
+          onClick={onOpenMenu}
+          aria-label="Меню"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4A4D52] text-white lg:hidden"
+        >
+          <Menu size={18} />
+        </button>
+      </nav>
+    </div>
+  )
+}
+
+function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const time = useKyivTime()
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-50 lg:hidden">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="animate-slide-up absolute inset-x-0 bottom-0 mx-3 mb-3 rounded-2xl bg-white p-5">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img
+              src={uscLogo}
+              alt="USC — Ukrainian Santechnical Company"
+              className="h-9 w-9 rounded-full object-cover"
+            />
+            <span className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-[13px] text-gray-600">
+              <Clock size={14} />
+              {time} Київ
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Закрити"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4A4D52] text-white"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <ul className="mb-6 space-y-3">
+          {NAV_LINKS.map((l) => (
+            <li key={l.label}>
+              <a
+                href={l.href}
+                onClick={onClose}
+                className="block text-[28px] font-medium leading-[32px] text-gray-900"
+              >
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <a
+          href="#catalog"
+          onClick={onClose}
+          className="group flex items-center justify-between rounded-full bg-[#F5B915] py-3 pl-6 pr-3 text-[15px] font-medium text-gray-900"
+        >
+          Перейти до каталогу
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform duration-500 group-hover:-rotate-45">
+            <ArrowRight size={16} className="text-gray-900" />
+          </span>
+        </a>
+        <a
+          href={FACEBOOK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 flex items-center justify-center gap-2 text-[14px] font-medium text-gray-600"
+        >
+          <Facebook size={18} />
+          Facebook
+        </a>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Section 1 — Hero                                                    */
+/* ------------------------------------------------------------------ */
+
+function Hero() {
+  const [menuOpen, setMenuOpen] = useState(false)
+  return (
+    <section id="top" className="relative flex min-h-screen flex-col bg-[#EFEFEF]">
+      <ShaderBoundary>
+        <HeroShaders />
+      </ShaderBoundary>
+      <Nav onOpenMenu={() => setMenuOpen(true)} />
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+
+      {/* Content pinned to bottom */}
+      <div className="relative z-20 mt-auto w-full">
+        <div className="mx-auto w-full max-w-[1440px] px-5 pb-14 sm:px-8 sm:pb-16 lg:px-12 lg:pb-20">
+          <p className="mb-5 text-[13px] tracking-wide text-gray-900 sm:mb-8 sm:text-[14px]">
+            USC — Ukrainian Santechnical Company
+          </p>
+          <h1 className="font-medium leading-[1.08] tracking-[-0.03em] text-gray-900 text-[clamp(1.75rem,7vw,4.2rem)] sm:text-[clamp(2.5rem,5vw,4.2rem)]">
+            Сталева кульова арматура <br className="hidden sm:block" />
+            для опалення, газу <br className="hidden sm:block" />
+            та спеціальних застосувань.
+          </h1>
+
+          <div className="mt-8 flex flex-col gap-4 sm:mt-12 sm:flex-row sm:items-center sm:gap-5">
+            <a
+              href="#"
+              className="group inline-flex items-center gap-3 self-start rounded-full bg-[#F5B915] py-2 pl-5 pr-2 text-[13px] font-medium text-gray-900 transition-colors hover:bg-[#e0a70f] sm:pl-6 sm:text-[14px]"
+            >
+              <TextRoll>Перейти до каталогу</TextRoll>
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white transition-transform duration-500 group-hover:-rotate-45 sm:h-8 sm:w-8">
+                <ArrowRight size={16} className="text-gray-900" />
+              </span>
+            </a>
+
+            <div className="inline-flex items-center gap-2 self-start rounded-[4px] bg-white px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
+              <ValveMark className="h-5 w-5 fill-current text-[#1E7FC2] sm:h-6 sm:w-6" />
+              <span className="text-[13px] font-medium text-gray-900 sm:text-[14px]">
+                Власне виробництво
+              </span>
+              <span className="rounded bg-[#4A4D52] px-1.5 py-0.5 text-[10px] text-white sm:px-2 sm:text-[11px]">
+                Сертифіковано
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Section 2 — About                                                   */
+/* ------------------------------------------------------------------ */
+
+function BadgeRow({
+  num,
+  label,
+  border,
+}: {
+  num: string
+  label: string
+  border: string
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#4A4D52] text-[13px] font-medium text-white">
+        {num}
+      </span>
+      <span className={`rounded-full border ${border} px-4 py-1.5 text-[13px] text-gray-700`}>
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function About() {
+  const paragraph =
+    'Ми виробляємо сталеву кульову запірну арматуру TM USC та постачаємо екологічне обладнання PROTE для опалення, газу та промислових застосувань.'
+
+  const CtaButton = (
+    <a
+      href="#"
+      className="group inline-flex items-center gap-3 self-start rounded-full bg-[#F5B915] py-2 pl-5 pr-2 text-[13px] font-medium text-gray-900 transition-colors hover:bg-[#e0a70f] sm:pl-6 sm:text-[14px]"
+    >
+      <TextRoll>Про виробництво</TextRoll>
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white transition-transform duration-500 group-hover:-rotate-45 sm:h-8 sm:w-8">
+        <ArrowRight size={16} className="text-gray-900" />
+      </span>
+    </a>
+  )
+
+  return (
+    <section className="overflow-hidden bg-white pb-12 pt-16 sm:pb-16 sm:pt-20 lg:pb-24 lg:pt-32">
+      <div className="mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="mb-8">
+          <BadgeRow num="1" label="Про компанію USC" border="border-gray-200" />
+        </div>
+        <h2 className="mb-12 font-medium leading-[1.12] tracking-[-0.02em] text-gray-900 text-[clamp(1.5rem,4vw,3.2rem)] sm:mb-16 lg:mb-28">
+          Надійна арматура, перевірена <br className="hidden sm:block" />
+          роками роботи на ринку.
+        </h2>
+
+        {/* Mobile / tablet layout */}
+        <div className="lg:hidden">
+          <p className="mb-6 text-[15px] font-medium leading-[1.6] text-gray-800 sm:text-[17px]">
+            {paragraph}
+          </p>
+          <div className="mb-8">{CtaButton}</div>
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <img
+              src={zavodBalls}
+              alt="Сталеві кулі для запірної арматури TM USC"
+              className="aspect-[438/346] w-full rounded-xl object-cover sm:w-[45%] sm:rounded-2xl"
+            />
+            <img
+              src={zavodProte}
+              alt="Обладнання PROTE"
+              className="aspect-[900/600] w-full rounded-xl object-cover sm:w-[55%] sm:rounded-2xl"
+            />
+          </div>
+        </div>
+
+        {/* Desktop layout */}
+        <div className="hidden grid-cols-[26%_1fr_48%] gap-8 lg:grid">
+          <img
+            src={zavodBalls}
+            alt="Сталеві кулі для запірної арматури TM USC"
+            className="aspect-[438/346] w-full rounded-2xl object-cover"
+          />
+          <div className="flex flex-col justify-between">
+            <p className="text-[17px] font-medium leading-[1.6] text-gray-800">
+              {paragraph}
+            </p>
+            <div className="mt-8">{CtaButton}</div>
+          </div>
+          <img
+            src={zavodProte}
+            alt="Обладнання PROTE"
+            className="aspect-[900/600] w-full rounded-2xl object-cover"
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Section 3 — Catalog                                                 */
+/* ------------------------------------------------------------------ */
+
+function Catalog() {
+  return (
+    <section id="catalog" className="bg-[#F5F5F5] pb-16 pt-16 sm:pb-20 sm:pt-20 lg:pb-28 lg:pt-28">
+      <div className="mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="mb-8">
+          <BadgeRow num="2" label="Каталог продукції" border="border-gray-300" />
+        </div>
+        <h2 className="mb-12 font-medium leading-[1.08] tracking-[-0.03em] text-gray-900 text-[clamp(1.75rem,7vw,4.2rem)] sm:mb-16 sm:text-[clamp(2.5rem,5vw,4.2rem)]">
+          Наш асортимент
+        </h2>
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3 sm:gap-6 lg:gap-7">
+          {/* Card 1 — TM USC */}
+          <article>
+            <div className="group relative aspect-[329/246] overflow-hidden rounded-2xl bg-[#4A4D52]">
+              <img
+                src={sampleBranded}
+                alt="TM USC — сталева кульова арматура"
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <a
+                href="#"
+                className="group/btn absolute bottom-4 right-4 flex items-center overflow-hidden rounded-full bg-white text-gray-900"
+              >
+                <span className="flex h-11 w-11 items-center justify-center">
+                  <LinkIcon size={16} />
+                </span>
+                <span className="max-w-0 overflow-hidden whitespace-nowrap pr-0 text-[13px] font-medium transition-all duration-500 group-hover:max-w-[160px] group-hover:pr-5">
+                  Перейти в каталог
+                </span>
+              </a>
+            </div>
+            <p className="mt-4 text-[13px] text-gray-600 sm:text-[14px]">
+              Власна сталева кульова запірна арматура, у т.ч. з приводом
+            </p>
+            <h3 className="mt-1 text-[14px] font-semibold text-gray-900 sm:text-[15px]">
+              TM USC
+            </h3>
+          </article>
+
+          {/* Card 2 — PROTE */}
+          <article>
+            <div className="group relative aspect-square overflow-hidden rounded-2xl bg-[#1E7FC2]">
+              <img
+                src={zavodProte}
+                alt="PROTE — екологічне обладнання"
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <a
+                href="#"
+                className="group/btn absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-[#4A4D52] py-2.5 pl-4 pr-4 text-[13px] font-medium text-white opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+              >
+                Дивитись каталог
+                <ArrowRight size={16} />
+              </a>
+            </div>
+            <p className="mt-4 text-[13px] text-gray-600 sm:text-[14px]">
+              Обладнання екологічного напряму від партнера PROTE
+            </p>
+            <h3 className="mt-1 text-[14px] font-semibold text-gray-900 sm:text-[15px]">
+              PROTE
+            </h3>
+          </article>
+
+          {/* Card 3 — Other equipment */}
+          <article>
+            <div className="group relative aspect-square overflow-hidden rounded-2xl bg-[#F5B915]">
+              <img
+                src={gasCabinet}
+                alt="Інше обладнання — газові шафи, арматура"
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            </div>
+            <p className="mt-4 text-[13px] text-gray-600 sm:text-[14px]">
+              Насоси, фланці, трубні деталі, компенсатори, запобіжна арматура
+            </p>
+            <h3 className="mt-1 text-[14px] font-semibold text-gray-900 sm:text-[15px]">
+              Інше обладнання
+            </h3>
+          </article>
+        </div>
+
+        {/* TM USC — size range subcatalog */}
+        <div className="mt-16 sm:mt-20">
+          <div className="mb-8 flex items-center gap-3">
+            <span className="text-[13px] font-medium text-gray-700">
+              TM USC — розмірний ряд
+            </span>
+            <span className="h-px flex-1 bg-gray-300" />
+          </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
+            {SIZE_RANGES.map((r) => (
+              <article
+                key={r.range}
+                className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-[#4A4D52]">
+                  <img
+                    src={r.img}
+                    alt={`Кульові крани TM USC ${r.range}`}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[12px] font-semibold text-gray-900">
+                    Ду {r.range} мм
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col p-5">
+                  <h4 className="text-[15px] font-semibold text-gray-900">{r.title}</h4>
+                  <p className="mt-1 text-[13px] leading-[1.5] text-gray-600">{r.desc}</p>
+                  <div className="mt-4 flex items-center gap-2 text-[12px] text-gray-500">
+                    <Gauge size={14} className="text-[#1E7FC2]" />
+                    {r.pressure}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+          <p className="mt-6 text-[12px] text-gray-500">
+            Понад 100 типорозмірів. Повний перелік з тисками та кресленнями — у каталозі.
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Section 4 — Dealers & Partners                                       */
+/* ------------------------------------------------------------------ */
+
+const DEALER_BENEFITS = [
+  {
+    title: 'Дилерські ціни',
+    desc: 'Спеціальні умови та гнучка знижкова політика для партнерів.',
+  },
+  {
+    title: 'Продукція зі складу',
+    desc: 'Наявність ходових типорозмірів TM USC та обладнання PROTE.',
+  },
+  {
+    title: 'Технічна підтримка',
+    desc: 'Допомога з підбором арматури, кресленнями та документацією.',
+  },
+]
+
+function DealersSection() {
+  const [fileName, setFileName] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // NOTE: auto-forwarding the signed contract to corporate email
+    // requires a backend endpoint — this is a front-end stub for the demo.
+    setSubmitted(true)
+  }
+
+  return (
+    <section id="dealers" className="bg-white pb-16 pt-16 sm:pb-20 sm:pt-20 lg:pb-28 lg:pt-28">
+      <div className="mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="mb-8">
+          <BadgeRow num="3" label="Партнерам та дилерам" border="border-gray-200" />
+        </div>
+        <h2 className="mb-12 font-medium leading-[1.12] tracking-[-0.02em] text-gray-900 text-[clamp(1.5rem,4vw,3.2rem)] sm:mb-16">
+          Станьте офіційним <br className="hidden sm:block" />
+          дилером USC.
+        </h2>
+
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
+          {/* Benefits */}
+          <div>
+            <p className="mb-8 max-w-md text-[15px] font-medium leading-[1.6] text-gray-800 sm:text-[17px]">
+              Запрошуємо до співпраці монтажні організації, дистриб’юторів та
+              роздрібні мережі. Заповніть форму та завантажте договір — ми
+              опрацюємо заявку й повернемось із відповіддю.
+            </p>
+            <ul className="space-y-5">
+              {DEALER_BENEFITS.map((b) => (
+                <li key={b.title} className="flex gap-3">
+                  <CheckCircle2 size={22} className="mt-0.5 shrink-0 text-[#1E7FC2]" />
+                  <div>
+                    <p className="text-[15px] font-semibold text-gray-900">{b.title}</p>
+                    <p className="text-[13px] text-gray-600">{b.desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Form */}
+          <div className="rounded-2xl bg-[#F5F5F5] p-6 sm:p-8">
+            {submitted ? (
+              <div className="flex h-full min-h-[280px] flex-col items-center justify-center text-center">
+                <CheckCircle2 size={48} className="mb-4 text-[#1E7FC2]" />
+                <p className="text-[18px] font-semibold text-gray-900">Заявку надіслано!</p>
+                <p className="mt-2 max-w-xs text-[14px] text-gray-600">
+                  Дякуємо. Ми зв’яжемось із вами найближчим часом за вказаними
+                  контактами.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={onSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <input
+                    required
+                    type="text"
+                    placeholder="Ім’я / контактна особа"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[14px] text-gray-900 outline-none transition-colors focus:border-[#1E7FC2]"
+                  />
+                  <input
+                    required
+                    type="text"
+                    placeholder="Компанія (ФОП / ТОВ)"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[14px] text-gray-900 outline-none transition-colors focus:border-[#1E7FC2]"
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <input
+                    required
+                    type="email"
+                    placeholder="Email"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[14px] text-gray-900 outline-none transition-colors focus:border-[#1E7FC2]"
+                  />
+                  <input
+                    required
+                    type="tel"
+                    placeholder="Телефон"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[14px] text-gray-900 outline-none transition-colors focus:border-[#1E7FC2]"
+                  />
+                </div>
+
+                <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-white px-4 py-4 text-[14px] text-gray-600 transition-colors hover:border-[#1E7FC2]">
+                  <Upload size={18} className="shrink-0 text-[#1E7FC2]" />
+                  <span className="truncate">
+                    {fileName ? (
+                      <span className="flex items-center gap-2 text-gray-900">
+                        <FileText size={16} /> {fileName}
+                      </span>
+                    ) : (
+                      'Завантажити підписаний договір (PDF, JPG)'
+                    )}
+                  </span>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    className="hidden"
+                    onChange={(e) => setFileName(e.target.files?.[0]?.name ?? '')}
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  className="group flex w-full items-center justify-center gap-3 rounded-full bg-[#4A4D52] py-3.5 text-[14px] font-medium text-white transition-colors hover:bg-[#3a3d42]"
+                >
+                  Надіслати заявку
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white transition-transform duration-500 group-hover:-rotate-45">
+                    <ArrowRight size={15} className="text-[#4A4D52]" />
+                  </span>
+                </button>
+                <p className="text-center text-[11px] text-gray-400">
+                  Після погодження документ надійде на корпоративну пошту USC.
+                </p>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Section 5 — Certificates & Contacts                                  */
+/* ------------------------------------------------------------------ */
+
+const CERTIFICATES = [
+  { icon: Award, title: 'ISO 9001:2015', desc: 'Система управління якістю' },
+  { icon: ShieldCheck, title: 'Сертифікати відповідності', desc: 'На продукцію TM USC' },
+  { icon: FileText, title: 'Технічні паспорти', desc: 'Для кожного типорозміру' },
+]
+
+function ContactsSection() {
+  return (
+    <section
+      id="contacts"
+      className="bg-[#F5F5F5] pb-16 pt-16 sm:pb-20 sm:pt-20 lg:pb-28 lg:pt-28"
+    >
+      <div className="mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="mb-8">
+          <BadgeRow num="4" label="Сертифікати та контакти" border="border-gray-300" />
+        </div>
+        <h2 className="mb-12 font-medium leading-[1.12] tracking-[-0.02em] text-gray-900 text-[clamp(1.5rem,4vw,3.2rem)] sm:mb-16">
+          Якість, підтверджена <br className="hidden sm:block" />
+          документально.
+        </h2>
+
+        {/* Certificates */}
+        <div className="mb-14 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
+          {CERTIFICATES.map((c) => {
+            const Icon = c.icon
+            return (
+              <div
+                key={c.title}
+                className="flex items-start gap-4 rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#1E7FC2]/10 text-[#1E7FC2]">
+                  <Icon size={24} />
+                </span>
+                <div>
+                  <p className="text-[15px] font-semibold text-gray-900">{c.title}</p>
+                  <p className="mt-1 text-[13px] text-gray-600">{c.desc}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Contacts */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
+          <a
+            href="tel:+380000000000"
+            className="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]"
+          >
+            <Phone size={22} className="text-[#1E7FC2]" />
+            <span className="text-[13px] text-gray-500">Телефон</span>
+            <span className="text-[15px] font-semibold text-gray-900">
+              +38 (0__) ___-__-__
+            </span>
+          </a>
+          <a
+            href="mailto:info@usc-pro.com.ua"
+            className="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]"
+          >
+            <Mail size={22} className="text-[#1E7FC2]" />
+            <span className="text-[13px] text-gray-500">Email</span>
+            <span className="text-[15px] font-semibold text-gray-900">
+              info@usc-pro.com.ua
+            </span>
+          </a>
+          <div className="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+            <MapPin size={22} className="text-[#1E7FC2]" />
+            <span className="text-[13px] text-gray-500">Адреса</span>
+            <span className="text-[15px] font-semibold text-gray-900">Україна</span>
+          </div>
+          <a
+            href={FACEBOOK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]"
+          >
+            <Facebook size={22} className="text-[#1E7FC2]" />
+            <span className="text-[13px] text-gray-500">Соцмережі</span>
+            <span className="text-[15px] font-semibold text-gray-900">Facebook</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Footer                                                               */
+/* ------------------------------------------------------------------ */
+
+function Footer() {
+  return (
+    <footer className="bg-[#4A4D52] py-8 text-white">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center justify-between gap-4 px-5 sm:flex-row sm:px-8 lg:px-12">
+        <div className="flex items-center gap-3">
+          <img src={uscLogo} alt="USC" className="h-9 w-9 rounded-full object-cover" />
+          <span className="text-[13px] text-gray-300">
+            USC — Ukrainian Santechnical Company
+          </span>
+        </div>
+        <span className="text-[12px] text-gray-400">
+          © {new Date().getFullYear()} ЮСК.ПРО. Усі права захищені.
+        </span>
+      </div>
+    </footer>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* App                                                                 */
+/* ------------------------------------------------------------------ */
+
+export default function App() {
+  return (
+    <main>
+      <Hero />
+      <About />
+      <Catalog />
+      <DealersSection />
+      <ContactsSection />
+      <Footer />
+    </main>
+  )
+}
