@@ -1,31 +1,186 @@
 // AUTO-GENERATED from Роздрібний_прайс_ЮСК.ПРО_2026.xls (prices intentionally omitted).
+import kranFlantsevyy from './assets/kran-flantsevyy.png'
+import kranPryvarnyy from './assets/kran-pryvarnyy.png'
+import kranMuftovyy from './assets/kran-muftovyy.png'
+import kranKombinovanyy from './assets/kran-kombinovanyy.png'
+import kranPidzemnyy from './assets/kran-pidzemnyy.png'
+import lyukLegkyyA50 from './assets/lyuk-legkyy-a50.png'
+import lyukKvadratnyyA15 from './assets/lyuk-kvadratnyy-a15.png'
+import lyukReviziynyyA50 from './assets/lyuk-reviziynyy-a50.png'
+import reshitkaV125 from './assets/reshitka-v125.png'
+import stovpchykA15 from './assets/stovpchyk-a15.png'
+import khomutOdnostoronniy from './assets/khomut-odnostoronniy.png'
+import shrpDviLinii from './assets/shrp-dvi-linii.jpg'
+import shrpOdnaLiniya from './assets/shrp-odna-liniya.jpg'
+import zasuvkaFlancevaChavunna from './assets/zasuvka-flanceva-chavunna.jpg'
+import flanetsPloskyy from './assets/flanets-ploskyy.jpg'
+import kmch from './assets/kmch.jpg'
+import yashchykMontazhnyy from './assets/yashchyk-montazhnyy.jpg'
+import adapterLichylnykaGazu from './assets/adapter-lichylnyka-gazu.jpg'
+
+export type ProductSize = { dn: number; pn: number; code?: string }
+export type ProductVariant = { label: string; sizes: ProductSize[] }
+export type ProductType = {
+  id: string
+  name: string
+  blurb?: string
+  /** Optional product photo / drawing shown in the connection-type card. */
+  image?: string
+  variants: ProductVariant[]
+}
 export type ProductCategory = {
   id: string
   name: string
   blurb: string
   note?: string
-  items: string[]
+  /** Flat list of typo-sizes (used when the category has no `types`). */
+  items?: string[]
+  /** Optional photo per item, keyed by the exact item string. */
+  itemImages?: Record<string, string>
+  /** Optional representative photo for the whole category — used as the
+   *  fallback for any item card that has no entry in `itemImages`. */
+  image?: string
+  /** When present, the category is rendered as connection-type cards, each
+   *  opening the full list of available sizes for that type. */
+  types?: ProductType[]
 }
+
+/* ---- Ball-valve size tables (КАТАЛОГ USC 2026; prices omitted) ---------- */
+const p3 = (n: number) => String(n).padStart(3, '0')
+
+/** Article code:  К.К.<Ф|П|М>.<DN>.<PN>.<СП|ПП>.<0|3>02<suffix>
+ *  Management digit 3 = with reduction gear (large diameters), else 0. */
+function mkSizes(
+  prefix: string,
+  prohid: 'СП' | 'ПП',
+  reductorFrom: number,
+  rows: [number, number][],
+  suffix = '',
+): ProductSize[] {
+  return rows.map(([dn, pn]) => ({
+    dn,
+    pn,
+    code: `${prefix}.${p3(dn)}.${p3(pn)}.${prohid}.${dn >= reductorFrom ? '3' : '0'}02${suffix}`,
+  }))
+}
+
+const FLANGED_ROWS: [number, number][] = [
+  [15, 40], [20, 40], [25, 40], [32, 40], [40, 40], [50, 40],
+  [65, 16], [65, 25], [80, 16], [80, 25], [100, 16], [100, 25],
+  [125, 16], [125, 25], [150, 16], [150, 25], [200, 16], [200, 25],
+  [250, 16], [250, 25], [300, 16], [300, 25], [350, 16], [350, 25],
+  [400, 16], [400, 25], [500, 16], [500, 25], [600, 16], [700, 16],
+]
+
+const WELDED_ROWS: [number, number][] = [
+  [15, 40], [20, 40], [25, 40], [32, 40], [40, 40], [50, 40],
+  [65, 25], [80, 25], [100, 25], [125, 25], [150, 25], [200, 25],
+  [250, 25], [300, 25], [350, 25], [400, 25], [500, 25], [600, 25],
+]
+
+const MUFFLE_ROWS: [number, number][] = [
+  [15, 40], [20, 40], [25, 40], [32, 40], [40, 40], [50, 40],
+]
+
+const UNDERGROUND_SP_ROWS: [number, number][] = [
+  [25, 40], [32, 40], [40, 40], [50, 40], [65, 25], [80, 25],
+  [100, 25], [125, 25], [150, 25], [200, 25], [250, 25], [300, 25],
+  [350, 25], [400, 25], [500, 25], [600, 25],
+]
+
+const UNDERGROUND_PP_ROWS: [number, number][] = [
+  [25, 40], [32, 40], [40, 40], [50, 40], [65, 25], [80, 25],
+  [100, 25], [125, 25], [150, 25], [200, 25], [250, 25], [300, 25],
+  [350, 25], [400, 25], [500, 25],
+]
+
+const COMBINED_SIZES: ProductSize[] = [
+  { dn: 15, pn: 40, code: 'К.К.К.015.040.СП.02' },
+  { dn: 20, pn: 40, code: 'К.К.К.020.040.СП.02' },
+  { dn: 25, pn: 40, code: 'К.К.К.025.040.СП.02' },
+  { dn: 32, pn: 40, code: 'К.К.К.032.040.СП.02' },
+  { dn: 40, pn: 40, code: 'К.К.К.040.040.СП.02' },
+  { dn: 50, pn: 40, code: 'К.К.К.050.040.СП.02' },
+  { dn: 65, pn: 16, code: 'К.К.К.065.016.СП.02' },
+  { dn: 65, pn: 25, code: 'К.К.К.065.025.СП.02' },
+  { dn: 80, pn: 16, code: 'К.К.К.080/070.016.СП.02' },
+  { dn: 80, pn: 25, code: 'К.К.К.080/070.025.СП.02' },
+  { dn: 100, pn: 16, code: 'К.К.К.100/080.016.СП.02' },
+  { dn: 100, pn: 25, code: 'К.К.К.100/080.025.СП.02' },
+  { dn: 125, pn: 16, code: 'К.К.К.125/100.016.СП.02' },
+  { dn: 125, pn: 25, code: 'К.К.К.125/100.025.СП.02' },
+  { dn: 150, pn: 16, code: 'К.К.К.150/125.016.СП.02' },
+  { dn: 150, pn: 25, code: 'К.К.К.150/125.025.СП.02' },
+  { dn: 200, pn: 16, code: 'К.К.К.200/150.016.СП.02' },
+  { dn: 200, pn: 25, code: 'К.К.К.200/150.025.СП.02' },
+  { dn: 250, pn: 16, code: 'К.К.К.250/200.016.СП.02' },
+  { dn: 250, pn: 25, code: 'К.К.К.250/200.025.СП.02' },
+]
+
+const BALL_VALVE_TYPES: ProductType[] = [
+  {
+    id: 'flanged',
+    name: 'Фланцеве приєднання',
+    blurb:
+      'Кран кульовий сталевий (P235GH), фланцеве приєднання. Завужений або повний прохід, DN15–700, PN16–PN40.',
+    image: kranFlantsevyy,
+    variants: [
+      { label: 'Завужений прохід', sizes: mkSizes('К.К.Ф', 'СП', 300, FLANGED_ROWS) },
+      { label: 'Повний прохід', sizes: mkSizes('К.К.Ф', 'ПП', 200, FLANGED_ROWS) },
+    ],
+  },
+  {
+    id: 'welded',
+    name: 'Приварне приєднання',
+    blurb:
+      'Кран кульовий сталевий під приварку. Завужений або повний прохід, DN15–600, PN25–PN40.',
+    image: kranPryvarnyy,
+    variants: [
+      { label: 'Завужений прохід', sizes: mkSizes('К.К.П', 'СП', 300, WELDED_ROWS) },
+      { label: 'Повний прохід', sizes: mkSizes('К.К.П', 'ПП', 250, WELDED_ROWS) },
+    ],
+  },
+  {
+    id: 'muffled',
+    name: 'Муфтове приєднання',
+    blurb:
+      'Кран кульовий сталевий, різьбове (муфтове) приєднання. Завужений або повний прохід, DN15–50, PN40.',
+    image: kranMuftovyy,
+    variants: [
+      { label: 'Завужений прохід', sizes: mkSizes('К.К.М', 'СП', 9999, MUFFLE_ROWS) },
+      { label: 'Повний прохід', sizes: mkSizes('К.К.М', 'ПП', 9999, MUFFLE_ROWS) },
+    ],
+  },
+  {
+    id: 'combined',
+    name: 'Комбіноване приєднання',
+    blurb:
+      'Кран кульовий сталевий, комбіноване приєднання (фланець / приварка). DN15–250, PN16–PN40.',
+    image: kranKombinovanyy,
+    variants: [{ label: '', sizes: COMBINED_SIZES }],
+  },
+  {
+    id: 'underground',
+    name: 'Для підземного встановлення',
+    blurb:
+      'Кран кульовий приварний із подовженим шпинделем для підземного встановлення. DN25–600. Виготовлення під замовлення.',
+    image: kranPidzemnyy,
+    variants: [
+      { label: 'Завужений прохід', sizes: mkSizes('К.К.П', 'СП', 250, UNDERGROUND_SP_ROWS, '.Н') },
+      { label: 'Повний прохід', sizes: mkSizes('К.К.П', 'ПП', 200, UNDERGROUND_PP_ROWS, '.Н') },
+    ],
+  },
+]
 
 export const PRODUCT_CATEGORIES: ProductCategory[] = [
   {
     id: "ball-valves",
-    name: "Крани кульові фланцеві",
-    blurb: "Сталеві кульові запірні крани, фланцеві, стандартний прохід (11с33п), Pn16.",
-    items: [
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn15/10 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn20/15 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn25/20 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn32/25 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn40/32 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn50/40 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn65/50 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn80/65 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn100/80 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn125/100 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn150/125 Pn16",
-      "Кран запірний кул стал. фланцевий СП 11с33п Dn200/150 Pn16",
-    ],
+    name: "Крани кульові USC",
+    blurb:
+      "Сталеві кульові запірні крани власного виробництва TM USC — фланцеві, приварні, муфтові, комбіновані та для підземного встановлення. Для тепломережевої води, природного газу й нафтопродуктів. DN15–700, PN16–PN40.",
+    note:
+      "Корпус — сталь P235GH; куля — нержавіюча сталь AISI 304. Температура середовища −40…+200 °C, ресурс 30 років. Великі діаметри — з редуктором за замовчуванням.",
+    types: BALL_VALVE_TYPES,
   },
   {
     id: "shgrp",
@@ -35,9 +190,11 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
     items: [
       "Одна лінія редукування",
       "Дві лінії редукування",
-      "Комплектація: фільтр, манометри, термометри",
-      "Ящик — порошкове фарбування (жовтий)",
     ],
+    itemImages: {
+      "Одна лінія редукування": shrpOdnaLiniya,
+      "Дві лінії редукування": shrpDviLinii,
+    },
   },
   {
     id: "gate-valves",
@@ -50,6 +207,10 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
       "ЗАСУВКА ФЛАНЦЕВА СТАЛЕВА 30c41нж Ру16 — DN 50–400",
       "Засувка поворотна \"Баттерфляй\" Ру16 тип-2023 чавун диск / EPDM — DN 50–400",
     ],
+    itemImages: {
+      "ЗАСУВКА ФЛАНЦЕВА З ОБРЕЗИНЕННИМ КЛИНОМ 30ч39бр РУ16 — DN 50–400": zasuvkaFlancevaChavunna,
+      "ЗАСУВКА ФЛАНЦЕВА З ОБРЕЗИНЕННИМ КЛИНОМ 30ч36бр РУ16 — DN 50–300": zasuvkaFlancevaChavunna,
+    },
   },
   {
     id: "flanges",
@@ -59,6 +220,9 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
       "Фланець плоский ГОСТ 12820-80 — DN 15–1400 (PN6/PN10/PN16/PN25)",
       "Фланець комірцевий ГОСТ 12821-80 — DN 15–600 (PN16/PN40/PN63/PN100/PN160)",
     ],
+    itemImages: {
+      "Фланець плоский ГОСТ 12820-80 — DN 15–1400 (PN6/PN10/PN16/PN25)": flanetsPloskyy,
+    },
   },
   {
     id: "hatches",
@@ -78,6 +242,13 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
       "РЕШІТКА КЛАС А15 — 1000*500*60 мм",
       "СТОВПЧИК КЛАС А15 — 700*60 мм",
     ],
+    itemImages: {
+      "ЛЮК ЛЕГКИЙ КЛАС А50 — 750*100 мм": lyukLegkyyA50,
+      "ЛЮК КВАДРАТНИЙ КЛАС А15 — 650*650*60 мм": lyukKvadratnyyA15,
+      "ЛЮК РЕВІЗІЙНИЙ КЛАС А50 — 385*385*60 мм": lyukReviziynyyA50,
+      "РЕШІТКА КЛАС В125 — 790/810*400*80 мм": reshitkaV125,
+      "СТОВПЧИК КЛАС А15 — 700*60 мм": stovpchykA15,
+    },
   },
   {
     id: "clamps",
@@ -88,6 +259,9 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
       "Односторонні хомути L150–400 мм — DN 56…410 мм",
       "Двосторонні хомути L300–400 мм — DN 269…640 мм",
     ],
+    itemImages: {
+      "Односторонні хомути L150–400 мм — DN 56…410 мм": khomutOdnostoronniy,
+    },
   },
   {
     id: "kmch",
@@ -107,6 +281,7 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
       "КМЧ 40",
       "КМЧ 50",
     ],
+    image: kmch,
   },
   {
     id: "boxes",
@@ -126,6 +301,7 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
       "Ящик монтажний ВОГ до лічильника газу G-16 (лічильник, байпас з кранів) — 500x400x800",
       "Ящик монтажний ВОГ до лічильника газу G-25 (лічильник, байпас з кранів) — 600x400x900",
     ],
+    image: yashchykMontazhnyy,
   },
   {
     id: "adapters",
@@ -141,6 +317,7 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
       "Адаптер фронтальний 1 1\\4ʺ 100 мм",
       "Адаптер боковий 1\\4ʺ 100 мм",
     ],
+    image: adapterLichylnykaGazu,
   },
   {
     id: "tapping",
